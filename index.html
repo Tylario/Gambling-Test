@@ -1,0 +1,221 @@
+
+
+
+<html>
+<head>
+    <title>
+        Gambling Test
+    </title>
+</head>
+<style>
+
+    body {
+        font-family: "arial";
+	   overflow:hidden;
+    }
+
+    #win_or_lose {
+    
+        position: absolute;
+        height: 200px;
+        width: 400px;
+        top: 50%;
+        margin-top: -100px;
+        left: 50%;
+        margin-left: -200px;
+        font-size: 120;
+        text-align: center;
+    }
+
+    money {
+        font-size: 30;
+    }
+
+    input {
+        border: 1px solid black;
+        border-radius: 4px;
+        width: 40px;
+        margin: 1px;
+    }
+
+    button {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1px solid black;
+    }
+
+    bet {
+        margin-left: -75px;
+    }
+
+    cash {
+        margin-left: -117px;
+    }
+
+    if_lost {
+        margin-left: -109px;
+    }
+
+    if_won {
+        margin-left: -111px;
+    }
+
+    #career {
+        height: 1000px;
+        width: 200px;
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+	   z-index:-100;
+    }
+    
+</style>
+
+<body>
+   <div id="career">
+        <canvas id="all_time" width="20000px" height="1000px">
+			</canvas>
+    </div>
+    <div id="win_or_lose">
+        <span id="result">
+		</span>
+    </div>
+    <center>
+        <br>
+        <money>
+            Money <span id="money"></span></money><br><br>
+
+        <bet> Bet Value : <input id="bet_value" type="text" value="10"><br> </bet>
+        <cash> Cash Out Value : <input id="cash_out" type="text" value="1.5"><br> </cash>
+        <if_lost> If Previous Lost : Bet Value = Bet Value * <input type="text" id="lost" value="2"><small> (put 0 to return to base value)</small><br></if_lost>
+        <if_won> If Previous Won : Bet Value = Bet Value * <input type="text" id="won" value="0"><small> (put 0 to return to base value)</small><br></if_won>
+        <br> Toggle Auto Bet <button onclick="go()" id="go" type="button"> </button><small> (<input type="text" value = "3" id="xsecond"></input> times a second)</small><br>
+
+    </center>
+ 
+</body>
+<script>
+    var money = 100;
+    var going = 0;
+    var orig_bet = 1;
+    var ctx;
+    var time = 0;
+    var canvas;
+    var alltimegraph;
+	var xsecond = 0;
+    var move_left = 0;
+    
+    init();
+
+    function go() {
+     xsecond = 1000/document.getElementById("xsecond").value;
+        if (going === 1) {
+            going = 0;
+            document.getElementById("go").style.backgroundColor = "#ffffff";
+            document.getElementById("bet_value").value = orig_bet;
+        } else {
+            if (document.getElementById("bet_value").value >= 1) {
+                if (document.getElementById("bet_value").value < money) {
+                    orig_bet = document.getElementById("bet_value").value;
+                    going = 1;
+                    repeat();
+                    document.getElementById("go").style.backgroundColor = "#777777";
+                }
+            }
+        }
+    }
+
+    function repeat() {
+    
+    	move_left++;
+        move_left++;
+        
+        document.getElementById("career").style.left = (window.innerWidth-200) - move_left;
+        
+        if (money >= document.getElementById("bet_value").value) {
+            time++;
+            time++;
+            var cashoutat = 1;
+
+
+            if (Math.random() * document.getElementById("cash_out").value > 1) {
+                cashoutat = 0;
+            } else {
+                cashoutat = 9999999;
+            }
+
+            if (document.getElementById('cash_out').value < cashoutat) {
+                alltimegraph.getContext('2d').fillStyle = 'rgba(0, 250, 0, 1)';
+                document.getElementById("result").innerText = "Profit";
+                document.getElementById("result").style.color = "#00cc00";
+                setTimeout(function() {
+                    document.getElementById("result").innerText = " ";
+                }, xsecond);
+                money = money + (document.getElementById('bet_value').value * document.getElementById('cash_out').value) - document.getElementById('bet_value').value;
+                if (document.getElementById("won").value < 0.01) {
+                    document.getElementById("bet_value").value = orig_bet;
+                } else {
+                    document.getElementById("bet_value").value = document.getElementById("bet_value").value * document.getElementById("won").value;
+                }
+            } else {
+                alltimegraph.getContext('2d').fillStyle = 'rgba(250, 0, 0, 1)';
+                document.getElementById("result").innerText = "Crashed";
+                document.getElementById("result").style.color = "red";
+                setTimeout(function() {
+                    document.getElementById("result").innerText = " ";
+                }, xsecond);
+                money = money - document.getElementById('bet_value').value;
+                if (document.getElementById("lost").value < 0.01) {
+                    document.getElementById("bet_value").value = orig_bet;
+                } else {
+                    document.getElementById("bet_value").value = document.getElementById("bet_value").value * document.getElementById("lost").value;
+                }
+            };
+            document.getElementById("bet_value").value = Math.floor(10000 * document.getElementById("bet_value").value) / 10000;
+            document.getElementById('money').innerText = Math.floor(money * 1000) / 1000;
+            if (money <= 0) {
+                alert("You ran out of money, you probobly want to refresh your page my guy.");
+                going = 0;
+                document.getElementById("go").style.backgroundColor = "#ffffff";
+                money = 0;
+            };
+            alltimegraph.getContext('2d').fillRect(time, (-money + 1000), 4, 4);
+		  
+		  var scale = 1;
+		  document.getElementById('all_time').style.transform = "scaleX(" + scale + ")";
+
+            if (going === 1) {
+                setTimeout(function() {
+                    repeat();
+                }, xsecond);
+            }
+		  
+        } else {
+            going = 0;
+            alert("I am sorry my guy, you don't have enough money to bet, try betting a lower wager.");
+            document.getElementById("go").style.backgroundColor = "#ffffff";
+            document.getElementById("bet_value").value = orig_bet;
+        }
+    }
+
+
+
+    function init() {
+        document.getElementById("go").style.backgroundColor = "#ffffff";
+        document.getElementById("go").style.borderRadius = "5px";
+	   
+        document.getElementById('money').innerText = money;
+	   
+        canvas = document.getElementById('all_time');
+        alltimegraph = document.getElementById('all_time');
+        ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(0, 200, 0, 1 )';
+        alltimegraph = document.getElementById('all_time');
+        alltimegraph.getContext('2d').fillStyle = 'rgba(0, 0, 0, 1)'
+    }
+    
+</script>
+
+</html>
+
